@@ -14,7 +14,7 @@ template = "Tell me a joke about {topic}."
 prompt_template = ChatPromptTemplate.from_template(template)
 
 prompt = prompt_template.invoke({"topic": "cats"})
-result = model.invoke(prompt)
+result = model.invoke(prompt)# pass to model
 print(result.content)
 
 # PART 2: Prompt with Multiple Placeholders

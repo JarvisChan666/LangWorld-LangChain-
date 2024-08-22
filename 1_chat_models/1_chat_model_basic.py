@@ -8,7 +8,10 @@ from langchain_openai import ChatOpenAI
 load_dotenv()
 
 # Create a ChatOpenAI model
-model = ChatOpenAI(model="gpt-4o")
+model = ChatOpenAI(model="gpt-4o",  base_url="https://api.302.ai/v1/chat/completions")
+# write linkedlist
+
+
 
 # Invoke the model with a message
 result = model.invoke("What is 81 divided by 9?")

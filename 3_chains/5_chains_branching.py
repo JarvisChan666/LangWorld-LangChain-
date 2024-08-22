@@ -57,6 +57,7 @@ classification_template = ChatPromptTemplate.from_messages(
 )
 
 # Define the runnable branches for handling feedback
+# switch case
 branches = RunnableBranch(
     (
         lambda x: "positive" in x,
@@ -70,7 +71,7 @@ branches = RunnableBranch(
         lambda x: "neutral" in x,
         neutral_feedback_template | model | StrOutputParser()  # Neutral feedback chain
     ),
-    escalate_feedback_template | model | StrOutputParser()
+    escalate_feedback_template | model | StrOutputParser() # default
 )
 
 # Create the classification chain
