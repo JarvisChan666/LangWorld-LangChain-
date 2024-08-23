@@ -1,6 +1,6 @@
 import os
 
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import Chroma
@@ -10,6 +10,7 @@ from langchain_openai import OpenAIEmbeddings
 current_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(current_dir, "books", "odyssey.txt")
 db_dir = os.path.join(current_dir, "db")
+model_path = os.path.join(current_dir, "models", "all-mpnet-base-v2")
 
 # Check if the text file exists
 if not os.path.exists(file_path):
@@ -18,7 +19,7 @@ if not os.path.exists(file_path):
     )
 
 # Read the text content from the file
-loader = TextLoader(file_path)
+loader = TextLoader(file_path, encoding="utf-8")
 documents = loader.load()
 
 # Split the document into chunks
@@ -49,13 +50,14 @@ def create_vector_store(docs, embeddings, store_name):
 # Useful for general-purpose embeddings with high accuracy.
 # Note: The cost of using OpenAI embeddings will depend on your OpenAI API usage and pricing plan.
 # Pricing: https://openai.com/api/pricing/
-print("\n--- Using OpenAI Embeddings ---")
-openai_embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
-create_vector_store(docs, openai_embeddings, "chroma_db_openai")
+# print("\n--- Using OpenAI Embeddings ---")
+# openai_embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
+# create_vector_store(docs, openai_embeddings, "chroma_db_openai")
 
 # 2. Hugging Face Transformers
 # Uses models from the Hugging Face library.
 # Ideal for leveraging a wide variety of models for different tasks.
+
 # Note: Running Hugging Face models locally on your machine incurs no direct cost other than using your computational resources.
 # Note: Find other models at https://huggingface.co/models?other=embeddings
 print("\n--- Using Hugging Face Transformers ---")
@@ -95,7 +97,7 @@ def query_vector_store(store_name, query, embedding_function):
 query = "Who is Odysseus' wife?"
 
 # Query each vector store
-query_vector_store("chroma_db_openai", query, openai_embeddings)
+# query_vector_store("chroma_db_openai", query, openai_embeddings)
 query_vector_store("chroma_db_huggingface", query, huggingface_embeddings)
 
 print("Querying demonstrations completed.")

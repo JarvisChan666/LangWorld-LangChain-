@@ -14,7 +14,7 @@ from langchain_openai import OpenAIEmbeddings
 # Define the directory containing the text file
 current_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(current_dir, "books", "romeo_and_juliet.txt")
-db_dir = os.path.join(current_dir, "db")
+db_dir = os.path.join(current_dir, "db") # dynamically search all the vector store
 
 # Check if the text file exists
 if not os.path.exists(file_path):
@@ -68,8 +68,9 @@ create_vector_store(sent_docs, "chroma_db_sent")
 print("\n--- Using Token-based Splitting ---")
 token_splitter = TokenTextSplitter(chunk_overlap=0, chunk_size=512)
 token_docs = token_splitter.split_documents(documents)
-create_vector_store(token_docs, "chroma_db_token")
+create_vector_store(token_docs, "chroma_db_token") # split base on token, maybe a word super long
 
+# recommend sentence-based splitting for maintaining semantic coherence.
 # 4. Recursive Character-based Splitting
 # Attempts to split text at natural boundaries (sentences, paragraphs) within character limit.
 # Balances between maintaining coherence and adhering to character limits.
@@ -88,7 +89,7 @@ print("\n--- Using Custom Splitting ---")
 class CustomTextSplitter(TextSplitter):
     def split_text(self, text):
         # Custom logic for splitting text
-        return text.split("\n\n")  # Example: split by paragraphs
+        return text.split("\n\n")  # Example: split by paragraphs(at the end of paragraph)
 
 
 custom_splitter = CustomTextSplitter()

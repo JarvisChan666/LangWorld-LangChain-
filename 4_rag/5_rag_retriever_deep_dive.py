@@ -47,7 +47,7 @@ def query_vector_store(
 # Define the user's question
 query = "How did Juliet die?"
 
-# Showcase different retrieval methods
+# Showcase different retrieval methods(search in vector space)
 
 # 1. Similarity Search
 # This method retrieves documents based on vector similarity.
@@ -55,7 +55,7 @@ query = "How did Juliet die?"
 # Use this when you want to retrieve the top k most similar documents.
 print("\n--- Using Similarity Search ---")
 query_vector_store("chroma_db_with_metadata", query,
-                   embeddings, "similarity", {"k": 3})
+                   embeddings, "similarity", {"k": 3})# don't care similarity
 
 # 2. Max Marginal Relevance (MMR)
 # This method balances between selecting documents that are relevant to the query and diverse among themselves.
@@ -72,7 +72,7 @@ query_vector_store(
     embeddings,
     "mmr",
     {"k": 3, "fetch_k": 20, "lambda_mult": 0.5},
-)
+)# not only relevant, but also spread out(WELL ROUNDED)
 
 # 3. Similarity Score Threshold
 # This method retrieves documents that exceed a certain similarity score threshold.

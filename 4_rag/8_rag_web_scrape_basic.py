@@ -5,6 +5,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 # Load environment variables from .env
 load_dotenv()
@@ -34,17 +35,20 @@ print(f"Sample chunk:\n{docs[0].page_content}\n")
 
 # Step 3: Create embeddings for the document chunks
 # OpenAIEmbeddings turns text into numerical vectors that capture semantic meaning
-embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+# embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+huggingface_embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-mpnet-base-v2"
+)
 
 # Step 4: Create and persist the vector store with the embeddings
 # Chroma stores the embeddings for efficient searching
 if not os.path.exists(persistent_directory):
     print(f"\n--- Creating vector store in {persistent_directory} ---")
-    db = Chroma.from_documents(docs, embeddings, persist_directory=persistent_directory)
+    db = Chroma.from_documents(docs, huggingface_embeddings, persist_directory=persistent_directory)
     print(f"--- Finished creating vector store in {persistent_directory} ---")
 else:
     print(f"Vector store {persistent_directory} already exists. No need to initialize.")
-    db = Chroma(persist_directory=persistent_directory, embedding_function=embeddings)
+    db = Chroma(persist_directory=persistent_directory, embedding_function=huggingface_embeddings)
 
 # Step 5: Query the vector store
 # Create a retriever for querying the vector store

@@ -1,15 +1,20 @@
 import os
+import concurrent.futures
+import torch
 
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_community.vectorstores import Chroma
-from langchain_openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings 
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
 
 # Define the directory containing the text files and the persistent directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
 books_dir = os.path.join(current_dir, "books")
 db_dir = os.path.join(current_dir, "db")
-persistent_directory = os.path.join(db_dir, "chroma_db_with_metadata")
+persistent_directory = os.path.join(db_dir, "chroma_db_with_metadata") # reduce hallucination
+model_kwargs = {'device': 'cuda'}
 
 print(f"Books directory: {books_dir}")
 print(f"Persistent directory: {persistent_directory}")
@@ -31,7 +36,7 @@ if not os.path.exists(persistent_directory):
     documents = []
     for book_file in book_files:
         file_path = os.path.join(books_dir, book_file)
-        loader = TextLoader(file_path)
+        loader = TextLoader(file_path, encoding='utf-8')
         book_docs = loader.load()
         for doc in book_docs:
             # Add metadata to each document indicating its source
@@ -48,15 +53,35 @@ if not os.path.exists(persistent_directory):
 
     # Create embeddings
     print("\n--- Creating embeddings ---")
-    embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-small"
-    )  # Update to a valid embedding model if needed
+    # embeddings = OpenAIEmbeddings(
+    #     model="text-embedding-3-small",
+    #     base_url="https://api.bianxie.ai/v1",
+    # )  # Update to a valid embedding model if needed
+    huggingface_embeddings = HuggingFaceEmbeddings(
+    model_name="sentence-transformers/all-mpnet-base-v2",
+    model_kwargs=model_kwargs
+    )
+
+
+    # 使用多线程并行化嵌入生成
+    def embed_batch(batch):
+        return huggingface_embeddings.embed_documents([doc.page_content for doc in batch])
+
+    batch_size = 16  # 可调整的批处理大小
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        batched_embeddings = [
+            executor.submit(embed_batch, docs[i:i + batch_size])
+            for i in range(0, len(docs), batch_size)
+        ]
+        all_embeddings = [embed for future in concurrent.futures.as_completed(batched_embeddings) for embed in future.result()]
+
+    
     print("\n--- Finished creating embeddings ---")
 
     # Create the vector store and persist it
     print("\n--- Creating and persisting vector store ---")
     db = Chroma.from_documents(
-        docs, embeddings, persist_directory=persistent_directory)
+        docs, huggingface_embeddings, persist_directory=persistent_directory)
     print("\n--- Finished creating and persisting vector store ---")
 
 else:
